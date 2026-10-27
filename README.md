@@ -28,7 +28,7 @@ Options:
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `GITHUB_TOKEN` | Yes | A PAT with `repo` scope (needed for search across private repos, not just public ones) |
+| `GITHUB_TOKEN` | Yes | A token with public read access, or a PAT that can read each private repository you want included |
 | `ANTHROPIC_API_KEY` | No | If set, the structured activity is rewritten as a short narrative journal entry + highlights. If unset, you get the structured markdown as-is — the tool is fully useful without an LLM key. |
 
 ## Example output (structured mode, no LLM key)
@@ -46,12 +46,24 @@ Activity since 2026-07-06
 
 ## Running it on a schedule
 
-`.github/workflows/weekly-journal.yml` runs this every Monday and commits the output to `journal/YYYY-MM-DD.md` in whatever repo you drop it into. It needs two repo secrets:
+This repository deliberately does **not** run a scheduled journal job: its CI only checks the offline formatting and grouping logic. To schedule your own journal, copy [`examples/weekly-journal.yml`](examples/weekly-journal.yml) to `.github/workflows/weekly-journal.yml` in the repository where you want entries committed.
 
-- `JOURNAL_GH_PAT` — a personal access token with `repo` scope (the default Actions token can't search across your other repos, so this has to be a real PAT you create yourself in Settings → Developer settings → Personal access tokens)
+The example checks out a reviewed revision of this tool into a separate folder instead of assuming the package exists on npm. Update its pinned `ref` deliberately when you want a newer tool version.
+
+The copied workflow needs these repository secrets:
+
+- `JOURNAL_GH_PAT` — a personal access token that can read every repository you want searched. The default Actions token cannot search across your other repositories; private activity is included only where this PAT has access.
 - `ANTHROPIC_API_KEY` — optional, same as above
 
 Third-party actions in the workflow are pinned to commit SHA, not just a version tag, since the job has write access and secret access.
+
+## Development
+
+```bash
+npm test
+```
+
+The tests are offline and exercise argument validation, activity grouping, and Markdown output. They do not call GitHub or Anthropic.
 
 ## License
 

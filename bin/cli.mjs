@@ -4,9 +4,11 @@
 // drafts a structured weekly journal entry — optionally polished into prose
 // by Claude if ANTHROPIC_API_KEY is set.
 
+import { pathToFileURL } from "node:url";
+
 const GITHUB_API = "https://api.github.com";
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = { days: 7, output: null, user: null };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -15,6 +17,9 @@ function parseArgs(argv) {
     else if (arg === "--output") args.output = argv[++i];
     else if (arg === "--help" || arg === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
+  }
+  if (!Number.isInteger(args.days) || args.days < 1) {
+    throw new Error("--days must be a positive integer");
   }
   return args;
 }
@@ -76,7 +81,7 @@ async function fetchWeeklyActivity(token, username, days) {
   return { since, commits: commits.items ?? [], prs: prs.items ?? [] };
 }
 
-function groupByRepo(commits, prs) {
+export function groupByRepo(commits, prs) {
   const repos = new Map();
 
   for (const c of commits) {
@@ -103,7 +108,7 @@ function groupByRepo(commits, prs) {
   return repos;
 }
 
-function renderStructuredMarkdown(username, since, repos) {
+export function renderStructuredMarkdown(username, since, repos) {
   const lines = [`# Weekly Engineering Journal — ${username}`, "", `Activity since ${since}`, ""];
 
   if (repos.size === 0) {
@@ -193,7 +198,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err.message ?? err);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err.message ?? err);
+    process.exitCode = 1;
+  });
+}
