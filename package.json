@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Pulls a GitHub user's commits and pull requests from the last N days and drafts a structured weekly engineering journal entry, optionally polished into prose by Claude.",
   "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
   "bin": {
     "weekly-engineering-journal": "./bin/cli.mjs"
   },
